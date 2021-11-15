@@ -1,44 +1,74 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 
-const Login = () => {
+const Login = ({ setIsLoggedIn }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const history = useHistory();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(email, password);
+    fetch("http://localhost:3000/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    })
+      .then((res) => {
+        console.log(res);
+        return res.json();
+      })
+      .then((data) => {
+        let parsedData = data;
+        if (typeof data === "string") {
+          parsedData = JSON.parse(data);
+        }
+        console.log(parsedData);
+        if (parsedData.code === 200) {
+          localStorage.setItem("token", parsedData.token);
+          setIsLoggedIn(true);
+          history.push("/");
+        } else {
+          setError(parsedData.message);
+        }
+      })
+      .catch((e) => {
+        console.log(e);
+      });
   };
 
   return (
-    <main class="form-signin">
+    <main className="form-signin">
       <form onSubmit={handleSubmit}>
-        <h1 class="h3 mb-3 fw-normal">Please Login</h1>
+        <h1 className="h3 mb-3 fw-normal">Please Login</h1>
+        <div style={{ color: "red" }}> {error}</div>
 
-        <div class="form-floating">
+        <div className="form-floating">
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             type="email"
-            class="form-control"
+            className="form-control"
             id="floatingInput"
             placeholder="name@example.com"
           />
-          <label for="floatingInput">Email address</label>
+          <label htmlFor="floatingInput">Email address</label>
         </div>
-        <div class="form-floating">
+        <div className="form-floating">
           <input
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             type="password"
-            class="form-control"
+            className="form-control"
             id="floatingPassword"
             placeholder="Password"
           />
-          <label for="floatingPassword">Password</label>
+          <label htmlFor="floatingPassword">Password</label>
         </div>
 
-        <button class="w-100 btn btn-lg btn-primary" type="submit">
+        <button className="w-100 btn btn-lg btn-primary" type="submit">
           Login
         </button>
         <p>
